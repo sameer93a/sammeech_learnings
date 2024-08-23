@@ -28,6 +28,7 @@ export const expensesRoute = new Hono() // don't use comma here
   .post("/", zValidator("json", createPostSchema), async (c) => {
     const expense = await c.req.valid("json"); // because body not automatically parse whereas in express for that to happen we use app.use(express.json())
     fakeExpenses.push({ ...expense, id: fakeExpenses.length + 1 }); //
+    c.status(201);
     return c.json(expense);
   })
   .get("/:id{[0-9]+}", (c) => {
@@ -37,4 +38,14 @@ export const expensesRoute = new Hono() // don't use comma here
       return c.notFound();
     }
     return c.json({ expense });
+  })
+  .delete("/:id{[0-9]+}", (c) => {
+    const id = Number.parseInt(c.req.param("id"));
+    const index = fakeExpenses.findIndex((expense) => expense.id === id);
+    if (!index) {
+      return c.notFound();
+    }
+
+    const deletedExpens = fakeExpenses.splice(index, 1)[0];
+    return c.json({ expense: deletedExpens });
   });
